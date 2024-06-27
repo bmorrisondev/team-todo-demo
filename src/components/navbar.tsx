@@ -1,6 +1,6 @@
 import * as React from "react"
 import Link from "next/link"
-import { OrganizationSwitcher, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
 import { metadata } from "@/app/layout"
 
 function Navbar() {
@@ -11,7 +11,6 @@ function Navbar() {
       </div>
       <SignedIn>
         <div className="flex items-center gap-2">
-          <OrganizationSwitcher />
           <UserButton />
         </div>
       </SignedIn>
