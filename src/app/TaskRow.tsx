@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import React, { useState } from 'react'
 import { FiCircle, FiCheckCircle } from "react-icons/fi";
 import { auth } from '@clerk/nextjs/server';
-import { Task, setTaskState, updateTask } from './actions';
+import { setTaskState, updateTask } from './actions';
 import { ImInfo } from 'react-icons/im';
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 
 type Props = {
   disabled?: boolean
-  task: Task
+  task: any
 }
 
 function TaskRow({ task, disabled }: Props) {
