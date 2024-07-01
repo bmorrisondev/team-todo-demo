@@ -1,6 +1,7 @@
 'use server'
 import { auth } from "@clerk/nextjs/server";
 import { neon } from "@neondatabase/serverless";
+import { getUserInfo } from "./security";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is missing");
@@ -14,46 +15,36 @@ export type Task = {
   is_done: boolean;
   owner_id: number;
   created_on: Date;
-};
-
-function getUserInfo(): { userId: string } {
-  const { sessionClaims } = auth();
-  if (!sessionClaims) {
-    throw new Error('No session claims');
-  }
-  return {
-    userId: sessionClaims.sub,
-  }
 }
 
 export async function getTasks(): Promise<Task[]> {
-  const { userId } = getUserInfo();
+  const { ownerId } = getUserInfo();
   let res = await sql`
     select * from tasks
-      where owner_id = ${userId};
+      where owner_id = ${ownerId};
   `;
   return res as Task[];
 }
 
 export async function createTask(name: string) {
-  const { userId } = getUserInfo();
+  const { userId, ownerId } = getUserInfo();
   await sql`
-    insert into tasks (name, owner_id, created_by_id) values (${name}, ${userId}, ${userId});
+    insert into tasks (name, owner_id, created_by_id) values (${name}, ${ownerId}, ${userId});
   `;
 }
 
 export async function setTaskState(taskId: number, isDone: boolean) {
-  const { userId } = getUserInfo();
+  const { userId, ownerId } = getUserInfo();
   await sql`
-    update tasks set is_done = ${isDone}
-      where id = ${taskId} and owner_id = ${userId};
+    update tasks set is_done = ${isDone}, updated_by_id = ${userId}, updated_on = now()
+      where id = ${taskId} and owner_id = ${ownerId};
   `;
 }
 
 export async function updateTask(taskId: number, name: string, description: string) {
-  const { userId } = getUserInfo();
+  const { userId, ownerId } = getUserInfo();
   await sql`
     update tasks set name = ${name}, description = ${description}, updated_by_id = ${userId}, updated_on = now()
-      where id = ${taskId} and owner_id = ${userId};
+      where id = ${taskId} and owner_id = ${ownerId};
   `;
 }

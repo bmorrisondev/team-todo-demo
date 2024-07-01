@@ -4,7 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createTask } from './actions';
 
-function AddTaskForm() {
+type Props = {
+  disabled?: boolean
+}
+
+function AddTaskForm({ disabled }: Props) {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
@@ -15,8 +19,14 @@ function AddTaskForm() {
 
   return (
     <form onSubmit={onSubmit} className='flex gap-2'>
-      <Input autoFocus type='text' name='name' placeholder='What do you need to do?'/>
-      <Button type='submit'>Add</Button>
+      <Input
+        autoFocus
+        type='text'
+        name='name'
+        placeholder='What do you need to do?'
+        className='disabled:cursor-not-allowed'
+        disabled={disabled}/>
+      <Button type='submit' className='disabled:cursor-not-allowed' disabled={disabled}>Add</Button>
     </form>
   )
 }

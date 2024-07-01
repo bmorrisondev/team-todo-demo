@@ -12,10 +12,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components
 import { Label } from '@/components/ui/label';
 
 type Props = {
+  disabled?: boolean
   task: Task
 }
 
-function TaskRow({ task }: Props) {
+function TaskRow({ task, disabled }: Props) {
   const [isDone, setIsDone] = useState(task.is_done)
 
   async function onCheckClicked() {
@@ -34,7 +35,11 @@ function TaskRow({ task }: Props) {
 
   return (
     <div key={task.id} className={`group flex items-center transition-all w-full${isDone ? 'text-slate-500' : ''}`}>
-      <Button variant='link' className='text-lg text-inherit' onClick={onCheckClicked}>
+      <Button
+        variant='link'
+        className='text-lg text-inherit disabled:cursor-not-allowed'
+        disabled={disabled}
+        onClick={onCheckClicked}>
         { isDone ? <FiCheckCircle /> : <FiCircle /> }
       </Button>
       <Dialog>
@@ -49,10 +54,10 @@ function TaskRow({ task }: Props) {
           </DialogHeader>
           <form onSubmit={onSubmit} className='flex flex-col gap-2'>
             <Label htmlFor="name">Name</Label>
-            <Input type='text' name='name' defaultValue={task.name} />
+            <Input type='text' name='name' defaultValue={task.name} disabled={disabled} />
             <Label htmlFor="Description">Description</Label>
-            <Textarea name='description' defaultValue={task.description} />
-            <Button type='submit'>Save</Button>
+            <Textarea name='description' defaultValue={task.description} disabled={disabled} />
+            <Button type='submit' disabled={disabled}>Save</Button>
           </form>
         </DialogContent>
       </Dialog>
