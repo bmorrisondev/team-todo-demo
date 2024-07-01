@@ -4,14 +4,13 @@ import { getTasks } from "./actions";
 import { getUserInfo } from "./security";
 
 export default async function Home() {
-  const { canEdit } = getUserInfo()
   const tasks = await getTasks()
 
   return (
     <div className='flex flex-col'>
-      <AddTaskForm disabled={!canEdit} />
+      <AddTaskForm />
       <div className='flex flex-col gap-2 p-2'>
-        {tasks.map(task => <TaskRow key={task.id} task={task} disabled={!canEdit} />)}
+        {tasks.map(task => <TaskRow key={task.id} task={task} />)}
       </div>
     </div>
   );

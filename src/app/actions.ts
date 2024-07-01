@@ -18,33 +18,33 @@ export type Task = {
 }
 
 export async function getTasks(): Promise<Task[]> {
-  const { ownerId } = getUserInfo();
+  const { userId } = getUserInfo();
   let res = await sql`
     select * from tasks
-      where owner_id = ${ownerId};
+      where owner_id = ${userId};
   `;
   return res as Task[];
 }
 
 export async function createTask(name: string) {
-  const { userId, ownerId } = getUserInfo();
+  const { userId } = getUserInfo();
   await sql`
-    insert into tasks (name, owner_id, created_by_id) values (${name}, ${ownerId}, ${userId});
+    insert into tasks (name, owner_id, created_by_id) values (${name}, ${userId}, ${userId});
   `;
 }
 
 export async function setTaskState(taskId: number, isDone: boolean) {
-  const { userId, ownerId } = getUserInfo();
+  const { userId } = getUserInfo();
   await sql`
     update tasks set is_done = ${isDone}, updated_by_id = ${userId}, updated_on = now()
-      where id = ${taskId} and owner_id = ${ownerId};
+      where id = ${taskId} and owner_id = ${userId};
   `;
 }
 
 export async function updateTask(taskId: number, name: string, description: string) {
-  const { userId, ownerId } = getUserInfo();
+  const { userId } = getUserInfo();
   await sql`
     update tasks set name = ${name}, description = ${description}, updated_by_id = ${userId}, updated_on = now()
-      where id = ${taskId} and owner_id = ${ownerId};
+      where id = ${taskId} and owner_id = ${userId};
   `;
 }
