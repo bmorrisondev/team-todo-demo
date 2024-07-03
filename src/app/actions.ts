@@ -1,12 +1,21 @@
 'use server'
-import { auth } from "@clerk/nextjs/server";
 import { neon } from "@neondatabase/serverless";
-import { getUserInfo } from "./security";
+import { auth } from "@clerk/nextjs/server";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is missing");
 }
 const sql = neon(process.env.DATABASE_URL);
+
+function getUserInfo() {
+  const { sessionClaims } = auth();
+  if (!sessionClaims) {
+    throw new Error('No session claims');
+  }
+  return {
+    userId: sessionClaims.sub,
+  }
+}
 
 export async function getTasks() {
   const { userId } = getUserInfo();
