@@ -1,7 +1,6 @@
 import AddTaskForm from "./AddTaskForm";
 import TaskRow from "./TaskRow";
 import { getTasks } from "./actions";
-import { getUserInfo } from "./security";
 
 export default async function Home() {
   const tasks = await getTasks()

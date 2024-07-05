@@ -2,10 +2,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useState } from 'react'
 import { FiCircle, FiCheckCircle } from "react-icons/fi";
-import { auth } from '@clerk/nextjs/server';
 import { setTaskState, updateTask } from './actions';
-import { ImInfo } from 'react-icons/im';
-import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog';
