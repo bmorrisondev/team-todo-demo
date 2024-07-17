@@ -1,5 +1,4 @@
 'use server'
-import { auth } from "@clerk/nextjs/server";
 import { neon } from "@neondatabase/serverless";
 import { getUserInfo } from "./security";
 
@@ -36,8 +35,7 @@ export async function createTask(name: string) {
 export async function setTaskState(taskId: number, isDone: boolean) {
   const { userId, ownerId } = getUserInfo();
   await sql`
-    update tasks set is_done = ${isDone}, updated_by_id = ${userId}, updated_on = now()
-      where id = ${taskId} and owner_id = ${ownerId};
+    update tasks set is_done = ${isDone} where id = ${taskId} and owner_id = ${ownerId};
   `;
 }
 
@@ -47,4 +45,14 @@ export async function updateTask(taskId: number, name: string, description: stri
     update tasks set name = ${name}, description = ${description}, updated_by_id = ${userId}, updated_on = now()
       where id = ${taskId} and owner_id = ${ownerId};
   `;
+}
+
+export async function getLicenseCount(clerkOrgId: string) {
+  const [row] = await sql`select license_count from orgs where org_id=${clerkOrgId}`
+  return row?.license_count || 0
+}
+
+export async function getStripeCustomerIdFromOrgId(clerkOrgId: string) {
+  const [row] = await sql`select stripe_customer_id from orgs where org_id=${clerkOrgId}`
+  return row.stripe_customer_id
 }
