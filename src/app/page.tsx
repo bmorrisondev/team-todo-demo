@@ -2,7 +2,6 @@ import { auth } from "@clerk/nextjs/server";
 import AddTaskForm from "./AddTaskForm";
 import TaskRow from "./TaskRow";
 import { getTasks } from "./actions";
-import { getUserInfo } from "./security";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
@@ -19,6 +18,10 @@ export default async function Home() {
   let isLicensed = false
   // @ts-ignore
   if(sessionClaims?.org_metadata && sessionClaims?.org_metadata.isLicensed) {
+    isLicensed = true
+  }
+  // This is a personal account
+  if(!sessionClaims?.org_id) {
     isLicensed = true
   }
 
