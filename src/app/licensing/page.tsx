@@ -2,9 +2,9 @@ import { TableHeader, TableRow, TableHead, TableBody, Table } from '@/components
 import React from 'react'
 import UserRow from './UserRow'
 import { auth, clerkClient } from '@clerk/nextjs/server'
-import { getLicenseCount } from '../actions'
 import PurchaseLicensesCard from './PurchaseLicensesCard'
 import ManageLicensesCard from './ManageLicensesCard'
+import { neon } from '@neondatabase/serverless'
 
 type UserRowViewModel = {
   id: string
@@ -14,11 +14,14 @@ type UserRowViewModel = {
   isLicensed: boolean
 }
 
+const sql = neon(process.env.DATABASE_URL as string)
+
 async function Licensing() {
   const { sessionClaims } = auth()
 
   // Load license count
-  const currentLicenseCount = await getLicenseCount(sessionClaims?.org_id as string)
+  const [row] = await sql`select license_count from orgs where org_id=${sessionClaims?.org_id as string}`
+  const currentLicenseCount = row.license_count
   let currentlyLicensedUsers = 0
 
   // Load users

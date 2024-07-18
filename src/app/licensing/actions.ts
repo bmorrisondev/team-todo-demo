@@ -2,8 +2,10 @@
 import { clerkClient } from '@clerk/nextjs/server'
 import Stripe from 'stripe'
 import { getStripeCustomerIdFromOrgId } from '../actions';
+import { neon } from '@neondatabase/serverless';
 
 const stripe = new Stripe(process.env.STRIPE_KEY as string);
+const sql = neon(process.env.DATABASE_URL as string);
 
 export async function toggleUserLicense(orgId: string, userId: string, status: boolean) {
   await clerkClient.organizations.updateOrganizationMembershipMetadata({
@@ -16,10 +18,10 @@ export async function toggleUserLicense(orgId: string, userId: string, status: b
 }
 
 export async function getCheckoutUrl(clerkOrgId: string, quantity: number) {
-  const stripeId = await getStripeCustomerIdFromOrgId(clerkOrgId)
+  const [row] = await sql`select stripe_customer_id from orgs where org_id=${clerkOrgId}`
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
-    customer: stripeId,
+    customer: row.stripe_customer_id,
     line_items: [
       {
         price: 'price_1PajlBGVJ29rMAV1JmqqgEwa',
@@ -37,9 +39,9 @@ export async function getCheckoutUrl(clerkOrgId: string, quantity: number) {
 }
 
 export async function getPortalUrl(clerkOrgId: string) {
-  const stripeId = await getStripeCustomerIdFromOrgId(clerkOrgId)
+  const [row] = await sql`select stripe_customer_id from orgs where org_id=${clerkOrgId}`
   const session = await stripe.billingPortal.sessions.create({
-    customer: stripeId,
+    customer: row.stripe_customer_id,
     return_url: 'http://localhost:3005/licensing',
   });
   return session.url
