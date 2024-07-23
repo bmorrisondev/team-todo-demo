@@ -1,11 +1,15 @@
 'use server'
-import { clerkClient } from '@clerk/nextjs/server'
+import { auth, clerkClient } from '@clerk/nextjs/server'
 import Stripe from 'stripe'
 import { getStripeCustomerIdFromOrgId } from '../actions';
+import { neon } from '@neondatabase/serverless';
 
 const stripe = new Stripe(process.env.STRIPE_KEY as string);
+const sql = neon(process.env.DATABASE_URL as string)
 
 export async function toggleUserLicense(orgId: string, userId: string, status: boolean) {
+  // let theuser = await clerkClient.users.getUser(userId)
+
   await clerkClient.organizations.updateOrganizationMembershipMetadata({
     organizationId: orgId,
     userId: userId,
@@ -16,7 +20,16 @@ export async function toggleUserLicense(orgId: string, userId: string, status: b
 }
 
 export async function getCheckoutUrl(clerkOrgId: string, quantity: number) {
-  const stripeId = await getStripeCustomerIdFromOrgId(clerkOrgId)
+  let stripeId = await getStripeCustomerIdFromOrgId(clerkOrgId)
+  if(!stripeId) {
+    const { sessionClaims } = auth()
+    // Create customer in Stripe
+    const customer = await stripe.customers.create({
+      name: sessionClaims?.org_slug
+    })
+    await sql`insert into orgs (org_id, stripe_customer_id) values (${clerkOrgId}, ${customer.id})`
+    stripeId = customer.id
+  }
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     customer: stripeId,

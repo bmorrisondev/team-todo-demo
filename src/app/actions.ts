@@ -1,6 +1,6 @@
 'use server'
 import { neon } from "@neondatabase/serverless";
-import { getUserInfo } from "./security";
+import { canCreateTasks, getUserInfo } from "./security";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is missing");
@@ -12,8 +12,9 @@ export type Task = {
   name: string;
   description: string;
   is_done: boolean;
-  owner_id: number;
+  owner_id: string;
   created_on: Date;
+  created_by_id: string
 }
 
 export async function getTasks(): Promise<Task[]> {
@@ -26,6 +27,10 @@ export async function getTasks(): Promise<Task[]> {
 }
 
 export async function createTask(name: string) {
+  if(!canCreateTasks()) {
+    throw new Error("User not permitted to create tasks")
+  }
+
   const { userId, ownerId } = getUserInfo();
   await sql`
     insert into tasks (name, owner_id, created_by_id) values (${name}, ${ownerId}, ${userId});
@@ -54,5 +59,6 @@ export async function getLicenseCount(clerkOrgId: string) {
 
 export async function getStripeCustomerIdFromOrgId(clerkOrgId: string) {
   const [row] = await sql`select stripe_customer_id from orgs where org_id=${clerkOrgId}`
+  if(!row) return null
   return row.stripe_customer_id
 }
