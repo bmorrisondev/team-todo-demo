@@ -28,7 +28,7 @@ export async function getTasks(): Promise<Task[]> {
 
 export async function createTask(name: string) {
   if(!canCreateTasks()) {
-    throw new Error("User not permitted to create tasks")
+    return new Error("User not permitted to create tasks")
   }
 
   const { userId, ownerId } = getUserInfo();

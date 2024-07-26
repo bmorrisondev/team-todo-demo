@@ -19,7 +19,7 @@ export default async function Home() {
           </AlertDescription>
         </Alert>
       )}
-      <AddTaskForm disabled={!canCreateTasks()} />
+      <AddTaskForm />
       <div className='flex flex-col gap-2 p-2'>
         {tasks.map(task =>
           <TaskRow key={task.id} task={task} disabled={!canEditTask(task.created_by_id)} />

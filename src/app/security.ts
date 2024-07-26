@@ -31,7 +31,7 @@ export function isLicensed() {
 }
 
 export function canCreateTasks() {
-  const { sessionClaims } = auth();
+  const { sessionClaims, has } = auth();
   if(!isLicensed()) return false
   let canCreateTasks = false
   // 👉 If there is no org, it's the user's personal account
@@ -39,7 +39,7 @@ export function canCreateTasks() {
     canCreateTasks = true
   }
   // 👉 Check to make sure the user has the 'org:tasks:edit' permission
-  if (sessionClaims?.org_id && sessionClaims?.org_permissions?.includes('org:tasks:edit')) {
+  if (sessionClaims?.org_id && has({ permission: "org:tasks:edit" })) {
     canCreateTasks = true
   }
   return canCreateTasks
@@ -47,17 +47,17 @@ export function canCreateTasks() {
 
 export function canEditTask(createdById: string) {
   if(!isLicensed()) return false
-  const { userId, sessionClaims } = auth();
+  const { userId, sessionClaims, has } = auth();
   let canEditTask = false
   // 👉 If there is no org, it's the user's personal account
   if(!sessionClaims?.org_id) {
     canEditTask = true
   } else {
     // 👉 If the user has the 'org:tasks:manage' permission, they can edit any task
-    if(sessionClaims?.org_permissions?.includes('org:tasks:manage')) {
+    if(has({ permission: "org:tasks:manage" })) {
       canEditTask = true
       // 👉 If the user has the 'org:tasks:edit' permission AND the user IDs match, they can edit this task
-    } else if(sessionClaims?.org_permissions?.includes('org:tasks:edit') && createdById === userId) {
+    } else if(has({ permission: "org:tasks:edit" }) && createdById === userId) {
       canEditTask = true
     }
   }
