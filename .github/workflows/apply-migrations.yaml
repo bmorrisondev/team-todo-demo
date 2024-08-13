@@ -14,7 +14,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm install
-          npm install -D drizzle-kit
+          npm install -g drizzle-kit
       - name: Apply migrations
         run: drizzle-kit migrate
         env:
