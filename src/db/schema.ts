@@ -6,7 +6,8 @@ export const tasks = pgTable('tasks', {
   is_done: boolean('is_done'),
   owner_id: text('owner_id'),
   created_in: timestamp('created_on'),
-  created_by_id: text('created_by_id')
+  created_by_id: text('created_by_id'),
+  description: text('description')
 });
 
 export const orgs = pgTable('orgs', {
