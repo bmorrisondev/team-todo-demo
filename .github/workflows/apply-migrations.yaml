@@ -11,8 +11,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Install tooling
-        run: npm install -g drizzle-orm drizzle-kit pg dotenv
+      - name: Install dependencies & tooling
+        run: |
+          npm install
+          npm install -g drizzle-orm drizzle-kit pg
       - name: Apply migrations
         run: drizzle-kit migrate
         env:
