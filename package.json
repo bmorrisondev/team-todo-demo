@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "db:apply": "drizzle-kit migrate"
   },
   "dependencies": {
     "@brianmmdev/clerk-webhooks-handler": "^1.0.5",
