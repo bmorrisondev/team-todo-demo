@@ -44,12 +44,13 @@ export async function setTaskState(taskId: number, isDone: boolean) {
   )).execute()
 }
 
-export async function updateTask(taskId: number, name: string) {
+export async function updateTask(taskId: number, name: string, description: string) {
   const { ownerId } = getUserInfo();
 
   const db = await getDb()
   await db.update(tasks).set({
-    name: name
+    name: name,
+    description: description
   }).where(and(
     eq(tasks.id, taskId),
     eq(tasks.owner_id, ownerId)
