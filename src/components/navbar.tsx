@@ -1,23 +1,37 @@
+"use client"
 import * as React from "react"
 import Link from "next/link"
-import { OrganizationSwitcher, SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
-import { metadata } from "@/app/layout"
-import { Button } from "./ui/button"
-import { auth } from "@clerk/nextjs/server"
+import { OrganizationSwitcher, SignedIn, SignedOut, useAuth, UserButton } from "@clerk/nextjs"
+import { KeyIcon } from "lucide-react"
+import { ImSpinner } from "react-icons/im"
 
 function Navbar() {
-  const { sessionClaims } = auth()
+  const { has, isLoaded } = useAuth();
+
+  if(!isLoaded) {
+    return <ImSpinner />
+  }
+
+  const isAdmin = has({ role: "org:admin" });
 
   return (
     <nav className="flex p-2 justify-between items-center bg-slate-100 border-b border-slate-200">
       <div className="flex items-center gap-2">
-        <Link href="/">{ metadata.title as string }</Link>
+        <Link href="/">Team Task</Link>
       </div>
       <SignedIn>
         <div className="flex items-center gap-2">
-          {sessionClaims?.org_role === "org:admin" && <Link href="/licensing">Licensing</Link>}
           <OrganizationSwitcher afterCreateOrganizationUrl={"/licensing"} />
-          <UserButton />
+          <UserButton>
+            {isAdmin &&
+              <UserButton.MenuItems>
+                <UserButton.Link
+                  label="Licensing"
+                  labelIcon={<KeyIcon />}
+                  href="/licensing" />
+              </UserButton.MenuItems>
+            }
+          </UserButton>
         </div>
       </SignedIn>
       <SignedOut>
