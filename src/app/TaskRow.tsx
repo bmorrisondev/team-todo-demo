@@ -1,8 +1,8 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import React, { ReactNode, useState } from 'react'
+import React, { ReactNode, useEffect, useMemo, useState } from 'react'
 import { FiCircle, FiCheckCircle } from "react-icons/fi";
-import { Task, getChatUsersForLiveblocks, setTaskState, updateTask } from './actions';
+import { Task, getChatUsersForLiveblocks, getOrgUserList, setTaskState, updateTask } from './actions';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -78,18 +78,51 @@ function ChatRoom({ taskId, children }: {
   taskId: number
   children: ReactNode
 }) {
+  const [orgUsers, setOrgUsers] = useState<any[]>([])
+
+  const fetchOrgUsers = useMemo(() => async () => {
+    try {
+      const users = await getOrgUserList()
+      setOrgUsers(users)
+    } catch (error) {
+      console.log("Error fetching org user list")
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOrgUsers()
+  }, [fetchOrgUsers])
 
   async function resolveUsers({ userIds }: {
     userIds: string[]
   }): Promise<any> {
-    const users = await getChatUsersForLiveblocks(userIds)
-    return users
+    // TODO: Remove this and just resolve using the fetched org user data
+    console.log("resolveUsers")
+    // const users = await getChatUsersForLiveblocks(userIds)
+    // console.log("users", users)
+    // return users
+
+    return userIds.map(uid => orgUsers.find(u => u.id === uid) ?? null)
+  }
+
+  async function resolveMentionSuggestions({ text }: {
+    text: string
+  }): Promise<any> {
+    console.log("resolveMentionSuggestions")
+    console.log(orgUsers)
+    let rv = orgUsers
+    if(text) {
+      rv = orgUsers.filter(u => u.name.toLowerCase().includes(text.toLowerCase()))
+    }
+    console.log("rv", rv)
+    return rv.map(u => u.id)
   }
 
   return (
     <LiveblocksProvider
       authEndpoint="/api/liveblocks-auth"
-      resolveUsers={resolveUsers}>
+      resolveUsers={resolveUsers}
+      resolveMentionSuggestions={resolveMentionSuggestions}>
       <RoomProvider id={`task_${taskId}`}>
         <ClientSideSuspense fallback={<div>Loading…</div>}>
           {children}

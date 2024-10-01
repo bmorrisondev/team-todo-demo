@@ -4,7 +4,7 @@ import { canCreateTasks, getUserInfo } from "./security";
 import { getDb } from "@/db/db";
 import { tasks } from "@/db/schema";
 import { and, eq, InferSelectModel } from "drizzle-orm";
-import { clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is missing");
@@ -86,27 +86,44 @@ export async function getStripeCustomerIdFromOrgId(clerkOrgId: string) {
   return row.stripe_customer_id
 }
 
+type LiveblocksUserDTO = {
+  name?: string,
+  avatar: string
+}
+
 export async function getChatUsersForLiveblocks(userIds: string[]) {
+  const { sessionClaims } = auth();
   const res = await clerkClient().users.getUserList({
-    userId: userIds
+    organizationId: [sessionClaims?.org_id as string]
   })
-  const users = []
+
+  const users: Array<LiveblocksUserDTO | null> = []
   for(let i = 0; i < userIds.length; i++) {
     const u  = res.data.find(u => u.id === userIds[i])
     if(u) {
       users[i] = {
-        name: u.fullName,
+        name: u.fullName ?? u.primaryEmailAddress?.emailAddress,
         avatar: u.imageUrl
       }
     } else {
       users[i] = null
     }
   }
-  // const users = res?.data?.map(u => {
-  //   return {
-  //     name: u.fullName,
-  //     avatar: u.imageUrl
-  //   }
-  // })
+  return users
+}
+
+export async function getOrgUserList() {
+  const { sessionClaims } = auth();
+
+  const res = await clerkClient().users.getUserList({
+    organizationId: [sessionClaims?.org_id as string]
+  })
+  const users = res.data.map(u => {
+    return {
+      name: u.fullName ?? u.primaryEmailAddress?.emailAddress,
+      avatar: u.imageUrl
+    }
+  })
+
   return users
 }
