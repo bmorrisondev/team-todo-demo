@@ -4,6 +4,7 @@ import { canCreateTasks, getUserInfo } from "./security";
 import { getDb } from "@/db/db";
 import { tasks } from "@/db/schema";
 import { and, eq, InferSelectModel } from "drizzle-orm";
+import { clerkClient } from "@clerk/nextjs/server";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is missing");
@@ -16,6 +17,17 @@ export async function getTasks(): Promise<Task[]> {
   const { ownerId } = getUserInfo();
   const db = await getDb()
   return await db.select().from(tasks).where(eq(tasks.owner_id, ownerId))
+}
+
+export async function getOneTask(id: number): Promise<Task[]> {
+  const { ownerId } = getUserInfo();
+  const db = await getDb()
+  return await db.select().from(tasks).limit(1).where(
+    and(
+      eq(tasks.owner_id, ownerId),
+      eq(tasks.id, id)
+    )
+  )
 }
 
 export async function createTask(name: string) {
@@ -72,4 +84,29 @@ export async function getStripeCustomerIdFromOrgId(clerkOrgId: string) {
   })
   if(!row) return null
   return row.stripe_customer_id
+}
+
+export async function getChatUsersForLiveblocks(userIds: string[]) {
+  const res = await clerkClient().users.getUserList({
+    userId: userIds
+  })
+  const users = []
+  for(let i = 0; i < userIds.length; i++) {
+    const u  = res.data.find(u => u.id === userIds[i])
+    if(u) {
+      users[i] = {
+        name: u.fullName,
+        avatar: u.imageUrl
+      }
+    } else {
+      users[i] = null
+    }
+  }
+  // const users = res?.data?.map(u => {
+  //   return {
+  //     name: u.fullName,
+  //     avatar: u.imageUrl
+  //   }
+  // })
+  return users
 }

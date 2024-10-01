@@ -1,15 +1,17 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import React, { useState } from 'react'
+import React, { ReactNode, useState } from 'react'
 import { FiCircle, FiCheckCircle } from "react-icons/fi";
-import { auth } from '@clerk/nextjs/server';
-import { Task, setTaskState, updateTask } from './actions';
-import { ImInfo } from 'react-icons/im';
-import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '@/components/ui/sheet';
+import { Task, getChatUsersForLiveblocks, setTaskState, updateTask } from './actions';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import {
+  LiveblocksProvider,
+  RoomProvider,
+  ClientSideSuspense,
+} from "@liveblocks/react/suspense";
 
 type Props = {
   disabled?: boolean
@@ -34,7 +36,7 @@ function TaskRow({ task, disabled }: Props) {
   }
 
   return (
-    <div key={task.id} className={`group flex items-center transition-all w-full${isDone ? 'text-slate-500' : ''}`}>
+    <div key={task.id} className={`group flex items-center transition-all w-full ${isDone ? 'text-slate-500' : ''}`}>
       <Button
         variant='link'
         className='text-lg text-inherit disabled:cursor-not-allowed'
@@ -48,17 +50,22 @@ function TaskRow({ task, disabled }: Props) {
             {task.name}
           </Button>
         </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="md:min-w-[800px] h-[80%]">
+          <DialogTitle>
             Edit task
-          </DialogHeader>
-          <form onSubmit={onSubmit} className='flex flex-col gap-2'>
-            <Label htmlFor="name">Name</Label>
-            <Input type='text' name='name' defaultValue={task.name} disabled={disabled} />
-            <Label htmlFor="Description">Description</Label>
-            <Textarea name='description' defaultValue={task.description} disabled={disabled} />
-            <Button type='submit' disabled={disabled}>Save</Button>
-          </form>
+          </DialogTitle>
+          <div className="grid md:grid-cols-1 gap-2 h-full">
+            <form onSubmit={onSubmit} className='flex flex-col gap-2'>
+              <Label htmlFor="name">Name</Label>
+              <Input type='text' name='name' defaultValue={task.name as string} disabled={disabled} />
+              <Label htmlFor="Description">Description</Label>
+              <Textarea name='description' defaultValue={task.description as string} disabled={disabled} />
+              <Button type='submit' disabled={disabled}>Save</Button>
+            </form>
+            <ChatRoom taskId={task.id}>
+              <CollaborativeApp />
+            </ChatRoom>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
@@ -66,3 +73,47 @@ function TaskRow({ task, disabled }: Props) {
 }
 
 export default TaskRow
+
+function ChatRoom({ taskId, children }: {
+  taskId: number
+  children: ReactNode
+}) {
+
+  async function resolveUsers({ userIds }: {
+    userIds: string[]
+  }): Promise<any> {
+    const users = await getChatUsersForLiveblocks(userIds)
+    return users
+  }
+
+  return (
+    <LiveblocksProvider
+      authEndpoint="/api/liveblocks-auth"
+      resolveUsers={resolveUsers}>
+      <RoomProvider id={`task_${taskId}`}>
+        <ClientSideSuspense fallback={<div>Loading…</div>}>
+          {children}
+        </ClientSideSuspense>
+      </RoomProvider>
+    </LiveblocksProvider>
+  )
+}
+
+import { useThreads } from "@liveblocks/react/suspense";
+import { Composer, Thread } from "@liveblocks/react-ui";
+
+export function CollaborativeApp() {
+  const { threads } = useThreads();
+
+  return (
+    <div className='flex flex-col gap-2'>
+      {threads.map((thread) => (
+        <Thread
+          className='border border-slate-500 rounded-lg'
+          key={thread.id}
+          thread={thread} />
+      ))}
+      <Composer />
+    </div>
+  );
+}

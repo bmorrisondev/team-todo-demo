@@ -27,7 +27,7 @@ function Navbar() {
               <UserButton.MenuItems>
                 <UserButton.Link
                   label="Licensing"
-                  labelIcon={<KeyIcon />}
+                  labelIcon={<KeyIcon className='w-[16px] h-[16px]' />}
                   href="/licensing" />
               </UserButton.MenuItems>
             }
